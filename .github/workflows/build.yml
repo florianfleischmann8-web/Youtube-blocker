@@ -1,0 +1,37 @@
+name: Android APK Build
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Repository auschecken
+        uses: actions/checkout@v4
+
+      - name: JDK einrichten
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Gradle Wrapper ausführbar machen
+        run: chmod +x gradlew
+
+      - name: App-Namen auf YouTube Ad Blocker setzen
+        run: |
+          find . -name "strings.xml" -type f -exec sed -i 's/<string name="app_name">[^<]*<\/string>/<string name="app_name">YouTube Ad Blocker<\/string>/g' {} +
+
+      - name: Release APK bauen
+        run: ./gradlew assembleRelease
+
+      - name: APK als Artefakt hochladen
+        uses: actions/upload-artifact@v4
+        with:
+          name: YouTube-Ad-Blocker-APK
+          path: app/build/outputs/apk/release/*.apk
